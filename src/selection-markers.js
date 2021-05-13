@@ -78,10 +78,10 @@ function removeMarkersGetSelectionOffsets(slice) {
 	let finalHeadPos = -1;
 	let finalAnchorPos = -1;
 	slice.content.descendants(function(node, pos, prnt) {
-		if (node.type.name == 'head_marker') {
+		if (node.type == headMarker) {
 			finalHeadPos = pos;
 		}
-		if (node.type.name == 'anchor_marker') {
+		if (node.type === anchorMarker) {
 			finalAnchorPos = pos;
 		}
 		return finalHeadPos == -1 || finalAnchorPos == -1 // just a little optimization
