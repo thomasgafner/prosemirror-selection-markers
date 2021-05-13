@@ -36,3 +36,107 @@ export function addSelectionMarkersNodes(nodes, markerGroup = 'inline') {
     anchor_marker: add(anchorMarker, {group: markerGroup})
   })
 }
+
+// :: (Node, Selection) → {Node, Selection}
+// Get a new document with the cursor or head and anchor added as two marker nodes
+// along with the updated selection. Never forget to remove those markers later!
+// Usage: ({doc, selection} = addSelectionAsMarkers(doc, selection));
+// Later you want to remove them with `removeMarkersGetSelectionOffsets`.
+export function addSelectionAsMarkers(doc, selection) {
+	const {$cursor, $head, $anchor} = selection;
+	const ntps = doc.type.schema.nodes;
+	if ($cursor) {
+		doc = doc.replace($cursor.pos, $cursor.pos,
+			new Slice(Fragment.from(ntps.head_marker.create()), 0, 0));
+		selection = new TextSelection(doc.resolve($cursor.pos));
+		// selection objects absolutely must be reresolved when the document changes,
+		// because they consist of ResolvedPos pointing to node sizes and offsets in the old doc.
+	} else if ($anchor && $head) {
+		if ($anchor.pos < $head.pos) {
+			doc = doc.replace(selection.$head.pos, selection.$head.pos,
+				new Slice(Fragment.from(ntps.head_marker.create()), 0, 0));
+			doc = doc.replace(selection.$anchor.pos, selection.$anchor.pos,
+				new Slice(Fragment.from(ntps.anchor_marker.create()), 0, 0));
+			selection = new TextSelection($anchor, doc.resolve($head.pos+1));
+		} else {
+			doc = doc.replace(selection.$anchor.pos, selection.$anchor.pos,
+				new Slice(Fragment.from(ntps.anchor_marker.create()), 0, 0));
+			doc = doc.replace(selection.$head.pos, selection.$head.pos,
+				new Slice(Fragment.from(ntps.head_marker.create()), 0, 0));
+			selection = new TextSelection(doc.resolve($anchor.pos+1), $head);
+		}
+	}
+	return {doc, selection}
+}
+
+// :: (Slice) → {slice: Slice, selOff: {head: ?int, anchor: ?int, cursor: ?int}}
+// Get a new slice with the head and anchor markers removed along with the two
+// positions, where they where (relative to the start of the slice).
+// To add the markers use `addSelectionAsMarkers`
+// Later you may want to create a selection with `createSelectionFromOffsets`.
+function removeMarkersGetSelectionOffsets(slice) {
+	let finalHeadPos = -1;
+	let finalAnchorPos = -1;
+	slice.content.descendants(function(node, pos, prnt) {
+		if (node.type.name == 'head_marker') {
+			finalHeadPos = pos;
+		}
+		if (node.type.name == 'anchor_marker') {
+			finalAnchorPos = pos;
+		}
+		return finalHeadPos == -1 || finalAnchorPos == -1 // just a little optimization
+	});
+	// console.log('frg wm', frg);
+	// console.log('head', selection.$head.pos, from + finalHeadPos);
+	// remove the markers and calc selection offsets
+	if (finalHeadPos != -1 && finalAnchorPos != -1) {
+		if (finalAnchorPos < finalHeadPos) {
+			const slc = slice
+				.removeBetween(finalHeadPos, finalHeadPos+1)
+				.removeBetween(finalAnchorPos, finalAnchorPos+1);
+			return {slice: slc, selOff: {anchor: finalAnchorPos, head: finalHeadPos-1}};
+		} else {
+			const slc = slice
+				.removeBetween(finalAnchorPos, finalAnchorPos+1)
+				.removeBetween(finalHeadPos, finalHeadPos+1);
+			return {slice: slc, selOff: {anchor: finalAnchorPos-1, head: finalHeadPos}};
+		}
+	} else if (finalHeadPos != -1 || finalAnchorPos != -1) {
+		if (finalHeadPos == -1) { // should not happen, but ..
+			finalHeadPos = finalAnchorPos;
+		}
+		const slc = slice.removeBetween(finalHeadPos, finalHeadPos+1);
+		return {slice: slc, selOff: {cursor: finalHeadPos}};
+	}
+	return {slice, selOff: {}};
+}
+
+// :: (Node, int, {}) → Selection
+// Create a selection for a document where a slice is used at a given position.
+// That slice along with the selection offsets are the result from
+// using `removeMarkersGetSelectionOffsets` to remove selection markers.
+function createSelectionFromOffsets(doc, sliceStartPos, selOff) {
+	if (selOff.cursor) {
+		const newPos = sliceStartPos + selOff.cursor;
+		return Selection.findFrom(doc.resolve(newPos), 1, true); // 1 == foreward
+	} else if (selOff.anchor && selOff.head) {
+		return new TextSelection(
+			doc.resolve(sliceStartPos + selOff.anchor),
+			doc.resolve(sliceStartPos + selOff.head));
+	}
+}
+
+// :: (Transform, Fragment, integer, integer) → Transform
+// Remove the markers and replace the original slice with the new fragment.
+// The selection on the transform is set to where the markers have been.
+// This is the opposite of adding the markers by `addSelectionAsMarkers`.
+export function replaceWithSelection(tr, fragment, from, to) {
+	to--; // There is always one marker in it.
+	let slice = new Slice(fragment, 0, 0);
+	let selOff;
+	({slice, selOff} = removeMarkersGetSelectionOffsets(slice));
+	tr = tr.replace(from, to, slice);
+	const newSel = createSelectionFromOffsets(tr.doc, from, selOff);
+	tr = tr.setSelection(newSel);
+	return tr;
+}
