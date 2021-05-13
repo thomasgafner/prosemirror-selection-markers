@@ -16,11 +16,11 @@
     "url": "git://github.com/thomasgafner/prosemirror-selection-markers.git"
   },
   "dependencies": {
-		"prosemirror-model": "^1.0.0",
-		"prosemirror-state": "^1.0.0"
+    "prosemirror-model": "^1.0.0",
+    "prosemirror-state": "^1.0.0"
   },
   "devDependencies": {
-		"assert": "^2.0.0",
+    "assert": "^2.0.0",
     "mocha": "^8.2.1",
     "nyc": "^15.1.0",
     "prosemirror-test-builder": "^1.0.0",
@@ -29,7 +29,7 @@
   },
   "scripts": {
     "test": "mocha test/test-*.js",
-		"coverage": "NODE_ENV=test nyc --reporter=text mocha test/test-*.js --recursive --exit",
+    "coverage": "NODE_ENV=test nyc --reporter=text mocha test/test-*.js --recursive --exit",
     "build": "rollup -c",
     "watch": "rollup -c -w",
     "prepare": "npm run build"
