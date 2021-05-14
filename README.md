@@ -12,7 +12,8 @@ If it is ok for you to implement complicated changes to your document as a serie
 
 # Motivation
 
-If you want to implement complicated changes in one atomic transform (just one big replace step) this module can help you. You just implement what changes  the document and you need not care for the selection (cursor or head and anchor). The selection doesn't get lost or is put at some random position and reduced to a simple cursor. The selection remains expanded and at the most sensible position within the newly changed document.
+If you want to implement complicated changes in one atomic transform (just one big replace step) this module can help you. You just implement what changes  the document and you need not care for the selection (cursor or head and anchor). The selection neither gets lost nor is put at some random position nor reduced to a simple cursor. The selection remains expanded and at the most sensible position within the newly changed document.
+
 Writing code to calculate what happens to the selection is tedious and error-prone. Using this module you can avoid that. When writing code of a complicated transform, you just write code for the document change and you need not calculate what happens to the selection.
 
 # How it is done
@@ -24,14 +25,6 @@ The idea is:
 3. At the end of the changes the selection nodes get removed and the actual selection is set to their positions.
 
 Since all this happens within just one transform the selection nodes never remain within the document. The selection nodes actually get added and removed again before the one replace step is done. They never appear in any transaction history or get persisted or shared to collaborators of the document.
-
-# Installation
-
-Use `npm` to install.
-
-```
-npm install prosemirror-selection-markers
-```
 
 # Example
 
@@ -71,7 +64,7 @@ function doComplicatedTransform(tr, doc, selection) {
 	// .. = Fragment.from(doc.type.schema.nodes.my_node.create(null, ..))
 
 	tr = replaceWithSelection(tr, fragment, from, to);
-	
+
 	return tr;
 }
 ```
