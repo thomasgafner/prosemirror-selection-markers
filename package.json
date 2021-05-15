@@ -1,7 +1,7 @@
 {
   "name": "prosemirror-selection-markers",
   "version": "0.1.0",
-  "description": "Schema elements and transforms for ProseMirror that help keeping track of the selection in complicated transforms.",
+  "description": "Functions that help to keep track of the selection when writing composite changes in one transformation for a ProseMirror editor.",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "license": "MIT",
