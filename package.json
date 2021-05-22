@@ -1,6 +1,6 @@
 {
   "name": "prosemirror-selection-markers",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Functions that help to keep track of the selection when writing composite changes in one transformation for a ProseMirror editor.",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -21,9 +21,12 @@
   },
   "devDependencies": {
     "assert": "^2.0.0",
+    "ist": "^1.0.0",
     "mocha": "^8.2.1",
     "nyc": "^15.1.0",
     "prosemirror-test-builder": "^1.0.0",
+    "prosemirror-schema-basic": "^1.0.0",
+    "prosemirror-schema-list": "^1.0.0",
     "rollup": "^1.26.3",
     "@rollup/plugin-buble": "^0.20.0"
   },

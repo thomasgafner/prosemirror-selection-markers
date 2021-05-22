@@ -26,7 +26,7 @@ The idea is:
 2. You implement the changes as one fragment representing how that part of the document should be after the changes. The selection nodes get moved arround by the changes like single characters do.
 3. At the end of the changes the selection nodes get removed and the actual selection is set to their positions.
 
-Since all this happens within just one transformation the selection nodes never remain within the document. The selection nodes actually get added and removed again before the one replace step is done. They never appear in any transaction history or get persisted or shared to collaborators of the document.
+Since all this happens within one transformation step and on a version of the document, that is not attached to the state, the selection marker nodes cannot make it to the actual document. The selection nodes actually get added and removed again before the one and only replace step is done on the states transaction. So the markers never appear in any transaction history nor get persisted nor shared to collaborators of the same document.
 
 # Example
 
@@ -47,25 +47,26 @@ const mySchema = new Schema({
 
 ## Write your transformations
 
-When writing your transformations use `addSelectionAsMarkers` and `replaceWithSelection`.
+When writing your transformations use `insertSelectionMarkers` and `replaceWithAndSetSelection`.
 
 ```javascript
 import {Fragment} from "prosemirror-model"
 import {Transform} from "prosemirror-transform"
-import {addSelectionAsMarkers, replaceWithSelection} from "prosemirror-selection-markers"
+import {insertSelectionMarkers, replaceWithAndSetSelection} from "prosemirror-selection-markers"
 
 function doComplicatedTransform(tr, doc, selection) {
 
-	({doc, selection} = addSelectionAsMarkers(doc, selection));
+	({doc, selection} = insertSelectionMarkers(doc, selection));
 
 	let from, to, fragment;
 
-	// Expand the selection to the actual range that changes (from, to).
-	// Set up a fragment for that range containing all the changes.
+	// Expand the selection to the actual range (from, to) that contains all changes.
+	// Set up a fragment as replacement for that range consisting of changing and remaining nodes.
+	// The code here might contain the following expressions:
 	// .. = doc.slice(.., ..).content ..
 	// .. = Fragment.from(doc.type.schema.nodes.my_node.create(null, ..))
 
-	tr = replaceWithSelection(tr, fragment, from, to);
+	tr = replaceWithAndSetSelection(tr, fragment, from, to);
 
 	return tr;
 }
