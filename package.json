@@ -1,7 +1,10 @@
 {
-  "name": "prosemirror-selection-markers",
+  "name": "@thomas.gafner/prosemirror-selection-markers",
   "version": "0.2.0",
   "description": "Functions that help to keep track of the selection when writing composite changes in one transformation for a ProseMirror editor.",
+	"keywords": [
+    "ProseMirror","transformation","utils","helpers","selection","cursor"
+  ],
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "license": "MIT",
